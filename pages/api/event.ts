@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 // end firebase setup
 
-type Events = {
+interface Events  {
   [key: string]: Object[],
 };
 interface EventsApiRequest extends NextApiRequest {
@@ -27,49 +27,59 @@ interface EventsApiRequest extends NextApiRequest {
     endDate?: string,
   }
 };
+interface ApiError {
+  message: string,
+}
 
 export default async function handler(
   req: EventsApiRequest,
-  res: NextApiResponse<Events>
+  res: NextApiResponse<Events | ApiError>
 ) {
   console.log('here')
   if (req.method === 'GET'){
     // GET REQUEST
-    if (typeof req.query.startDate === 'string' && 
-        typeof req.query.endDate === 'string'){
-      const startDateStr = req.query.startDate;
-      const endDateStr = req.query.endDate;
-      const startDate = new Date(startDateStr);
-      const endDate = new Date(endDateStr);
+    try {
+      if (typeof req.query.startDate === 'string' && 
+          typeof req.query.endDate === 'string'){
+        const startDateStr = req.query.startDate;
+        const endDateStr = req.query.endDate;
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
 
-      // TODO: Get user hash
-      const uid: string = process.env.UID || 'path';
-      const userRef = collection( doc( collection(db, "userEvents"), uid ) , "events" );
-      const querySnapshot = await getDocs(query(userRef,
-                where( 'date', '>=', startDate ),
-                where( 'date', '<', endDate ),
-            ));
+        // TODO: Get user hash
+        const uid: string = process.env.UID || 'path';
+        const userRef = collection( doc( collection(db, "userEvents"), uid ) , "events" );
+        const querySnapshot = await getDocs(query(userRef,
+                  where( 'date', '>=', startDate ),
+                  where( 'date', '<', endDate ),
+              ));
       
-      let out: Events = {};
-      querySnapshot.forEach((doc) => {
-        try{
-          const data = doc.data();
-          const date = data.date.toDate();
-          data.date = date.toString();
-          date.setHours(0,0,0,0);
-          const dateString = date.toString();
+        let out: Events = {};
+        querySnapshot.forEach((doc) => {
+          try{
+            // extract data from document
+            const data = doc.data();
+            data.id = doc.id;
+            // get date to which data has to be assigned
+            const date: Date = data.date.toDate();
+            data.date = date.toString();
+            date.setHours(0,0,0,0);
+            const dateString = date.toString();
         
-          if (!(dateString in out)){
-            out[dateString] = Array();
-          }
-          out[dateString].push( data );
-        } catch { }
-      });
-      res.status(200).json(out);
-    } else {
-      res.status(400).send({ });
+            if (!(dateString in out)){
+              out[dateString] = Array();
+            }
+            out[dateString].push( data );
+          } catch { }
+        });
+        res.status(200).json(out);
+      } else {
+        res.status(400).send({ message: 'Incorrect query parameters.' });
+      }
+    } catch {
+      res.status(500).send({ message: 'Failed to query database.' });
     }
-    // END GET REQUEST
+      // END GET REQUEST
   } else if (req.method === 'DELETE') {
 
   } else {
