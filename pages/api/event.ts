@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 // firebase setup
 import {initializeApp} from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { deleteDoc, getFirestore } from "firebase/firestore";
 import { collection, doc, getDocs, query, where } from "firebase/firestore"; 
 
 const firebaseConfig = {
@@ -25,6 +25,9 @@ interface EventsApiRequest extends NextApiRequest {
   query: {
     startDate?: string,
     endDate?: string,
+  },
+  body: {
+    postId?: string,
   }
 };
 interface ApiError {
@@ -74,15 +77,28 @@ export default async function handler(
         });
         res.status(200).json(out);
       } else {
-        res.status(400).send({ message: 'Incorrect query parameters.' });
+        res.status(400).json({ message: 'Incorrect query parameters.' });
       }
     } catch {
-      res.status(500).send({ message: 'Failed to query database.' });
+      res.status(500).json({ message: 'Failed to query database.' });
     }
-      // END GET REQUEST
+    // END GET REQUEST
+
   } else if (req.method === 'DELETE') {
 
-  } else {
+    // DELETE REQUEST
+    try {
+      if (typeof req.body.postId === 'string'){
+        const uid: string = process.env.UID || 'path';
+        const userRef = collection( doc( collection(db, "userEvents"), uid ) , "events" );
+        await deleteDoc( doc(userRef, req.body.postId) );
+      }
+    } catch {
+      res.status(500).json({ message: 'Failed to query database.' })
+    }
+    // END DELETE REQUEST
+
+  } else if (req.method === 'POST') {
 
   }
 }

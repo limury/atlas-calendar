@@ -1,9 +1,18 @@
 'use client';
+
+import { ReactNode } from "react";
+
+interface Event {
+  title: string,
+  id: string,
+  date: string | Date,
+  description?: string,
+}
 export default function CalendarCell(
   {dateStr, isToday, events} : {
     dateStr: string,
     isToday: boolean,
-    events: Object[],
+    events?: Event[],
   }
 ) {
   const clickFn = () => {
@@ -11,20 +20,32 @@ export default function CalendarCell(
   }
 
   const date: Date = new Date(dateStr);
-  if (isToday)
+
+  let eventComponents: ReactNode[] = [];
+  if (typeof events !== 'undefined'){
+    // transform dates into date objects
+    for (var i = 0; i < events.length; i++) {
+      events[i].date = new Date(events[i].date)
+    }
+    // sort events
+    events.sort((a,b) => a.date < b.date ? -1 : 1);
+
+    // event components 
+    eventComponents = events.map((v,i) => (
+      <div key={i} className="w-full bg-slate-300 rounded-md">
+        {v.title}
+      </div>
+    ));
+  }
+
   return (
-    <button className="border p-3 flex justify-center align-top
-                      bg-purple-400"
+    <button className={`border px-1 py-3 flex justify-center align-top
+                      ${isToday ? "bg-purple-400" : "hover:bg-purple-200"}`}
       onClick={clickFn}>
-      {date.getDate()}
-    </button>
-  )
-  else
-  return (
-    <button className="border p-3 flex justify-center align-top
-                      hover:bg-purple-200"
-      onClick={clickFn}>
-      {date.getDate()}
+      <div className="w-full">
+        <span>{date.getDate()}</span>
+        <div>{eventComponents}</div>
+      </div>
     </button>
   )
 }
