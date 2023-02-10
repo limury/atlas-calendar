@@ -38,44 +38,68 @@ export default async function handler(
   req: EventsApiRequest,
   res: NextApiResponse<Events | ApiError>
 ) {
-  console.log('here')
   if (req.method === 'GET'){
     // GET REQUEST
     try {
       if (typeof req.query.startDate === 'string' && 
           typeof req.query.endDate === 'string'){
-        const startDateStr = req.query.startDate;
-        const endDateStr = req.query.endDate;
-        const startDate = new Date(startDateStr);
-        const endDate = new Date(endDateStr);
+        // const startDateStr = req.query.startDate;
+        // const endDateStr = req.query.endDate;
+        // const startDate = new Date(startDateStr);
+        // const endDate = new Date(endDateStr);
 
-        // TODO: Get user hash
-        const uid: string = process.env.UID || 'path';
-        const userRef = collection( doc( collection(db, "userEvents"), uid ) , "events" );
-        const querySnapshot = await getDocs(query(userRef,
-                  where( 'date', '>=', startDate ),
-                  where( 'date', '<', endDate ),
-              ));
+        // // TODO: Get user hash
+        // const uid: string = process.env.UID || 'path';
+        // const userRef = collection( doc( collection(db, "userEvents"), uid ) , "events" );
+        // const querySnapshot = await getDocs(query(userRef,
+        //           where( 'date', '>=', startDate ),
+        //           where( 'date', '<', endDate ),
+        //       ));
       
-        let out: Events = {};
-        querySnapshot.forEach((doc) => {
-          try{
-            // extract data from document
-            const data = doc.data();
-            data.id = doc.id;
-            // get date to which data has to be assigned
-            const date: Date = data.date.toDate();
-            data.date = date.toString();
-            date.setHours(0,0,0,0);
-            const dateString = date.toString();
+        // let out: Events = {};
+        // querySnapshot.forEach((doc) => {
+        //   try{
+        //     // extract data from document
+        //     const data = doc.data();
+        //     data.id = doc.id;
+        //     // get date to which data has to be assigned
+        //     const date: Date = data.date.toDate();
+        //     data.date = date.toString();
+        //     date.setHours(0,0,0,0);
+        //     const dateString = date.toString();
         
-            if (!(dateString in out)){
-              out[dateString] = Array();
+        //     if (!(dateString in out)){
+        //       out[dateString] = Array();
+        //     }
+        //     out[dateString].push( data );
+        //   } catch { }
+        // });
+        const out = {
+          'Mon Feb 06 2023 00:00:00 GMT+0000 (Greenwich Mean Time)': [
+            {
+              title: 'hi',
+              date: 'Mon Feb 06 2023 09:09:29 GMT+0000 (Greenwich Mean Time)',
+              id: 'jx0G07WCyLNhXoAzZt7m'
             }
-            out[dateString].push( data );
-          } catch { }
-        });
+          ],
+          'Thu Feb 16 2023 00:00:00 GMT+0000 (Greenwich Mean Time)': [
+            {
+              description: 'call dad',
+              date: 'Thu Feb 16 2023 22:33:32 GMT+0000 (Greenwich Mean Time)',
+              title: 'Call',
+              id: 'ugJRG8HjN2YLQwoVZE5l'
+            }
+          ],
+          'Tue Feb 28 2023 00:00:00 GMT+0000 (Greenwich Mean Time)': [
+            {
+              date: 'Tue Feb 28 2023 09:11:53 GMT+0000 (Greenwich Mean Time)',
+              title: 'Another title',
+              id: 'J6kFERgytQWYuFtoyRdO'
+            }
+          ]
+        };
         res.status(200).json(out);
+
       } else {
         res.status(400).json({ message: 'Incorrect query parameters.' });
       }

@@ -15,7 +15,8 @@ export default function CalendarCell(
     events?: Event[],
   }
 ) {
-  const clickFn = () => {
+  const clickFn = (e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
     console.log(events);
   }
 
@@ -32,9 +33,9 @@ export default function CalendarCell(
 
     // event components 
     eventComponents = events.map((v,i) => (
-      <div key={i} className="w-full bg-slate-300 rounded-md">
+      <button key={i} className="w-full bg-lime-300 rounded-md" onClick={clickFn}>
         {v.title}
-      </div>
+      </button>
     ));
   }
 
