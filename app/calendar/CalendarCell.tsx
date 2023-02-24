@@ -1,7 +1,8 @@
 'use client';
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState } from "react";
 import { getBaseURL } from "../util";
+import AddEventModal from "./AddEventModal";
 
 interface Event {
   title: string,
@@ -33,13 +34,15 @@ export default function CalendarCell(
     events?: Event[],
   }
 ) {
-  const clickFn = (e: React.MouseEvent<HTMLElement>) => {
-    e.stopPropagation();
-    alert(events)
-  }
-
+  // extract date of the current cell to display at top
   const date: Date = new Date(dateStr);
+
+  // generate modal to show if adding events
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // generate components for existing events
   let eventComponents: ReactNode[] = [];
+  // check if we have any events today, if so generate their components
   if (typeof events !== 'undefined'){
     // transform dates into date objects
     for (var i = 0; i < events.length; i++) {
@@ -50,7 +53,7 @@ export default function CalendarCell(
 
     // event components 
     eventComponents = events.map((v,i) => (
-      <button key={i} className="w-full px-3 py-1 flex group justify-between bg-lime-300 rounded-md align-middle" onClick={clickFn}>
+      <button key={i} className="w-full px-3 py-1 flex group justify-between bg-lime-300 rounded-md align-middle">
         <text>
         {v.title}
         </text>
@@ -66,14 +69,27 @@ export default function CalendarCell(
   }
 
   return (
-    <button className={`border px-1 py-3 flex justify-center align-top
-                      ${isToday ? "bg-purple-400" : "hover:bg-purple-200"}`}
-      onClick={clickFn}>
-      <div className="w-full">
-        <span>{date.getDate()}</span>
+    <div className={`border px-1 py-3 flex flex-col align-top justify-between group
+                      ${isToday ? "bg-purple-400" : "hover:bg-purple-200"}`} >
+      <div className="w-full h-100">
+        <div className="flex justify-center">{date.getDate()}</div>
         <div>{eventComponents}</div>
       </div>
-    </button>
+      {/* Add event button */}
+      <button className="w-full bg-gray-400 rounded-md bg-opacity-50
+        invisible group-hover:visible hover:bg-opacity-100 text-lg align-middle"
+        onClick={() => setIsModalOpen(true)}>
+        +
+      </button>
+      
+
+      {/* Modal to appear if adding new event */}
+      {
+        isModalOpen ? (
+          <AddEventModal date={dateStr}/>
+        ) : null
+      }
+    </div>
   )
 }
 
