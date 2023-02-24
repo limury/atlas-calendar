@@ -27,7 +27,7 @@ interface EventsApiRequest extends NextApiRequest {
     endDate?: string,
   },
   body: {
-    postId?: string,
+    postID?: string,
   }
 };
 interface ApiError {
@@ -112,10 +112,13 @@ export default async function handler(
 
     // DELETE REQUEST
     try {
-      if (typeof req.body.postId === 'string'){
+      console.log(typeof(req.body));
+      if (typeof req.body.postID === 'string'){
+      console.log('here')
         const uid: string = process.env.UID || 'path';
         const userRef = collection( doc( collection(db, "userEvents"), uid ) , "events" );
-        await deleteDoc( doc(userRef, req.body.postId) );
+        await deleteDoc( doc(userRef, req.body.postID) );
+        res.status(200);
       }
     } catch {
       res.status(500).json({ message: 'Failed to query database.' })
